@@ -1,0 +1,41 @@
+PROGRAM MyProgram;
+
+BEGIN_KW
+x = 5
+y = 5
+z = 0
+
+    IF (x = y) THEN
+    BEGIN_KW
+        z = 10
+    END
+
+END.
+
+
+ -------- Apotelesmata apo to terminal --------:
+
+miketsimpas@192 Compilers % ./a.out test.running
+[LINE 1] TOKEN 'PROGRAM' (258)
+[LINE 1] TOKEN 'MyProgram' (305)
+[LINE 1] TOKEN ';' (295)
+                                        HASHTBL_INSERT(): KEY = MyProgram, HASH = 6,    DATA = (null), SCOPE = 0    ->  Sosto scope
+[LINE 3] TOKEN 'BEGIN_KW' (274)
+[LINE 5] TOKEN '    ' (310)
+[An error occured in line: 5] syntax error, unexpected cconst
+[LINE 5] TOKEN '   ' (310)
+[LINE 5] TOKEN 'IF' (276)
+[LINE 5] TOKEN '(' (293)
+[LINE 5] TOKEN 'y' (305)
+[LINE 5] TOKEN '=' (298)
+                                        HASHTBL_INSERT(): KEY = y, HASH = 1,    DATA = (null), SCOPE = 1    ->  Sosto scope 1, prin htan miden kai tora auksithike
+[LINE 5] TOKEN '0' (304)
+[An error occured in line: 5] syntax error, unexpected number
+[LINE 5] TOKEN ')' (294)
+[LINE 5] TOKEN 'THEN' (277)
+[LINE 7] TOKEN '        ' (310)
+[LINE 7] TOKEN 'x' (305)
+[LINE 7] TOKEN ':=' (302)
+[LINE 7] TOKEN '3' (304)
+[LINE 9] TOKEN 'END' (275)
+[LINE 9] TOKEN '.' (296)
