@@ -31,7 +31,7 @@ static void *xalloc(size_t n) {
     return p;
 }
 
-/* Gia to scope */
+/* For scope */
 void scope_push(void) {
     Scope *s  = xalloc(sizeof(Scope));
     s->parent = current_scope;
@@ -47,8 +47,8 @@ void scope_pop(void) {
     free(old);
 }
 
-/* Elegxos simbolon apo to eksoteriko sto esoteriko */
-SymEntry *sym_lookup(const char *name) {        // Anazithsh symbolon
+/* Symbol check from the outside to the inside */
+SymEntry *sym_lookup(const char *name) {        // Symbol check
     for (Scope *sc = current_scope; sc; sc = sc->parent) {
         for (SymEntry *e = sc->buckets[hash_str(name)]; e; e = e->next)
             if (strcmp(e->name, name) == 0) return e;
@@ -56,7 +56,7 @@ SymEntry *sym_lookup(const char *name) {        // Anazithsh symbolon
     return NULL;
 }
 
-/* Koita mono auto to scope */
+/* Look only at this scope */
 SymEntry *sym_lookup_local(const char *name) {
     if (!current_scope) return NULL;
     for (SymEntry *e = current_scope->buckets[hash_str(name)]; e; e = e->next)
@@ -71,7 +71,7 @@ SymEntry *sym_insert(const char *name, SymKind kind, TypeNode *type) {
         if ((existing->kind == SK_FUNCTION || existing->kind == SK_PROCEDURE)
                 && existing->is_forward)
             return existing;
-        sem_error("'%s' έχει ήδη δηλωθεί σε αυτή την εμβέλεια", name);
+        sem_error("'%s' it is allready on this scope", name);
         return existing;
     }
 
@@ -146,12 +146,12 @@ int is_basic(TypeNode *t) {
                  r->kind == T_BOOLEAN || r->kind == T_CHAR  || r->kind == T_STRING);
 }
 
-/* Scalar = oxi array / record / list */
+/* Scalar = not array / record / list */
 int is_scalar(TypeNode *t) {
     return t && t->kind != T_ARRAY && t->kind != T_RECORD && t->kind != T_LIST;
 }
 
-/* Ordered = gia simasiologikous telestes */
+/* Ordered = for semantic operators */
 int is_ordered(TypeNode *t) {
     TypeNode *r = resolve_type(t);
     return r && (r->kind == T_INTEGER || r->kind == T_REAL   ||
@@ -172,8 +172,8 @@ int types_compatible_assign(TypeNode *lhs, TypeNode *rhs) {
     return 0;
 }
 
-/* Epestrece ton tipo mazi me semantic checks */
-TypeNode *arithmetic_result(TypeNode *a, TypeNode *b, const char *op) {     // type chencking gia ekfraseis (boolean, int, real,...)
+/* Return the type with the semantic checks */
+TypeNode *arithmetic_result(TypeNode *a, TypeNode *b, const char *op) {     // type chencking for phrases (boolean, int, real,...)
     if (!a || !b || a->kind == T_ERROR || b->kind == T_ERROR) return type_error;
 
     if (op && (strcmp(op, "AND") == 0 || strcmp(op, "OR") == 0)) {
@@ -207,7 +207,7 @@ TypeNode *arithmetic_result(TypeNode *a, TypeNode *b, const char *op) {     // t
         return type_error;
     }
 
-    /* Ama kapoios einai real */
+    /* If someone is real */
     TypeNode *ra = resolve_type(a), *rb = resolve_type(b);
     return (ra->kind == T_REAL || rb->kind == T_REAL) ? type_real : type_integer;
 }
