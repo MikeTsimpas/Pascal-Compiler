@@ -37,13 +37,13 @@ struct TypeNode {
     };
 };
 
-/* Pinakas simbolon */
+/* Symbol table */
 typedef enum {
     SK_CONST, SK_TYPE, SK_VAR, SK_PARAM,
     SK_FUNCTION, SK_PROCEDURE, SK_ENUM_CONST
 } SymKind;
 
-/* Constant value (gia to SK_CONST / SK_ENUM_CONST) */
+/* Constant value (for SK_CONST / SK_ENUM_CONST) */
 typedef struct {
     TypeKind type_kind;
     union { int ival; float fval; char cval; char *sval; };
@@ -83,7 +83,7 @@ void symtab_init(void);
 void      scope_push(void);
 void      scope_pop(void);
 
-/* Elegxos simbolon kai eisagogh */
+/* Symbol check */
 SymEntry *sym_lookup(const char *name);
 SymEntry *sym_lookup_local(const char *name);
 SymEntry *sym_insert(const char *name, SymKind kind, TypeNode *type);
