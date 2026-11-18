@@ -6,7 +6,7 @@ int       sem_errors    = 0;
 
 TypeNode *type_integer, *type_real, *type_boolean,
          *type_char,    *type_string,
-         *type_error,   *type_unknown;
+         *type_error,   *type_unknown; 
 
 void symtab_init(void) {
     type_integer = make_basic_type(T_INTEGER);
