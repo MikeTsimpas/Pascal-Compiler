@@ -8,7 +8,7 @@
     extern int yylex();
     extern void yyerror(const char* err);
 
-    HASHTBL *hashtbl;       // Ta tokens htan se diaforetiko file
+    HASHTBL *hashtbl;       // Tokens was in a different file
     int scope = 0;
 
 %}
@@ -105,9 +105,9 @@
 
 %%
 
-/* Termatika -> Kefalaia | Mh termatika -> Mikra */
+/* Terminals -> Caps | Non terminal -> lowercase */
 
-program:                header declarations subprograms comp_statement DOT  { hashtbl_get(hashtbl, scope); scope--; } /* To bazoume gia sigouria gia cleanup */
+program:                header declarations subprograms comp_statement DOT  { hashtbl_get(hashtbl, scope); scope--; } /* For cleanup */
 						;
 header:                 PROGRAM ID SEMI                         { hashtbl_insert(hashtbl, $2, NULL, scope); scope++; }
 						;
@@ -116,8 +116,8 @@ declarations:           constdefs typedefs vardefs
 constdefs:              CONST constandefs SEMI
                         | %empty                                { }
 						;
-constandefs:            constandefs SEMI ID EQU expression      { hashtbl_insert(hashtbl, $3, NULL, scope); }   // To apothikeuoyme kathe fora sto hashtbl
-                        | ID EQU expression                     { hashtbl_insert(hashtbl, $1, NULL, scope); }   // Null = mhdenikh timh
+constandefs:            constandefs SEMI ID EQU expression      { hashtbl_insert(hashtbl, $3, NULL, scope); }   // Saving everytime onhashtbl
+                        | ID EQU expression                     { hashtbl_insert(hashtbl, $1, NULL, scope); }   // Null = zero value
 						;
 expression:             expression RELOP expression
                         | expression EQU expression
@@ -229,10 +229,10 @@ statement:              assignment
 						;
 assignment:             variable ASSIGN expression
 						;
-if_statement:           IF expression THEN statement if_tail            // Edo einai h if
+if_statement:           IF expression THEN statement if_tail            // Here is if
 						;
 if_tail:                ELSE statement
-                        | %empty %prec LOWER_THAN_ELSE          { }                  // Gia to dangling else problem, to else dinei oti to if_tail mporei na einai keno. Lower than else xamoliterh apo thn proteraiothta tou else kai ELSE megaliterh
+                        | %empty %prec LOWER_THAN_ELSE          { }                  // For the dangling else problem, if_tail may be empty.
 						;
 while_statement:        WHILE expression DO statement
 						;
@@ -251,8 +251,8 @@ subprogram_call:        ID                                      { hashtbl_insert
                         | ID LPAREN expressions RPAREN          { hashtbl_insert(hashtbl, $1, NULL, scope); }
 						;
 io_statement:           READ LPAREN read_list RPAREN
-                        | WRITE LPAREN write_list RPAREN        /* Antistoixo mporei na ginei kai se oles tis sinartiseis */
-                        | error LPAREN write_list RPAREN        { yyerror("Wrong use of io statement"); yyerrok; }
+                        | WRITE LPAREN write_list RPAREN
+                        | error LPAREN write_list RPAREN        { yyerror("Wrong use of io statement"); yyerrok; }  // Error checks
                         | WRITE  error write_list RPAREN        { yyerror("Wrong use of io statement"); yyerrok; }
                         | WRITE LPAREN write_list error         { yyerror("Wrong use of io statement"); yyerrok; }
 						;
@@ -275,7 +275,7 @@ write_item:             expression
 int main(int argc, char *argv[]){
     int token;
 
-    if (!(hashtbl = hashtbl_create(10, NULL))){     /* Apo arithmous 1-10 */
+    if (!(hashtbl = hashtbl_create(10, NULL))){     /* Numbers 1-10 */
         puts("Error, failed to initialize hashtable");
         exit(EXIT_FAILURE);
     }
