@@ -21,37 +21,36 @@
 %option noyywrap
 %option case-insensitive
 %option yylineno
-/* Kanoume exclusive state gia ta strings */
+/* Exclusive state for strings */
 %x STRING
 %x SINGLE_LINE_COMMENT  
 
-/* Isodinamies klaseon, gia efkolia, gia na mhn ta bazo ston kodika */
 LETTER              [a-zA-Z]
 DIGIT               [0-9]
 ALFARITHMITIKO      [a-zA-Z0-9]
-/* O kato arithmos einai gia na mhn ksekinaei me 0 */
+/* To not start with 0 */
 ARITHMOS            [1-9][0-9]*|0
 ANAGNORISTIKO       [a-zA-Z]([a-zA-Z0-9_]*[a-zA-Z0-9])?
-/* Gia tis entoles IICONST kanoume ta parakato gia kathe sistima */
+/* For IICONST functions */
 ZERO                0
 DECIMINAL           [1-9][0-9]*
 HEX                 0H[1-9A-F][0-9A-F]*
 OCTA                0O[1-7][0-7]*
 BINARY              0B1[01]*
-/* Gia tis entoles RCONST kanoume prota to akeraio meros pou mas zitaei */
+/* For RCONST functions */
 DEC_INT             (0|{DECIMINAL})
 HEX_INT             (0|[1-9A-F][0-9A-F]*)
 OCTA_INT            (0|[1-7][0-7]*)
 BIN_INT             (0|1[01]*)
-/* Kai meta kanoyme to klasmatiko me 0 h na exei >=1 non-zero psifia */
+/* With 0 or >=1 non-zero digits */
 FRAC_DEC            (0|1[01]*)
 FRAC_HEX            (0|[0-9A-F]*[1-9A-F][0-9A-F]*)
 FRAC_OCTA           (0|[0-7]*[1-7][0-7]*)
 FRAC_BIN            (0|[01]*1[01]*)
-/* Gia ton ektheti */
+/* For the exponent */
 EXP_NUM             (0|{DECIMINAL})
 EXPONENT            E([+\-]?{EXP_NUM})
-/* To sinoliko RCONST einai ola ta parapano mazi */
+/* Final RCONST */
 RCONST              ({DEC_INT}?\.{FRAC_DEC}{EXPONENT}?)|({DEC_INT}{EXPONENT})|(0H{HEX_INT}?\.{FRAC_HEX})|(0O{OCTA_INT}?\.{FRAC_OCTA})|(0B{BIN_INT}?\.{FRAC_BIN})
 CCONST              ('[a-zA-Z0-9]')|('[!@#$%^&*()]')|('\\[nftrbv]')|('\\')|([' ']*)|('\\')
 LISTFUNC            C(AD*|D+)R
@@ -114,7 +113,7 @@ LISTFUNC            C(AD*|D+)R
 {ARITHMOS}                              { token_print(NUMBER); return NUMBER; }
 {LISTFUNC}                              { token_print(LISTFUNC); return LISTFUNC; }
 {ANAGNORISTIKO}                         { token_print(ID); yylval.strval = strdup(yytext); return ID; }
- /* Mpainei edo gia na mhn anagnorizei lekseis kleidia. Kanonika to eixa pano apo to True, False, Not. Or & LISTFUNC alla eixa problima me ta tokens epeidi den eftane se ayta pote kai den ta egrafe */
+ /* It goes here so it can recognize keywords */
 {HEX}                                   { token_print(ICONST); yylval.intval = string_to_int(yytext); return ICONST; }
 {OCTA}                                  { token_print(ICONST); yylval.intval = string_to_int(yytext); return ICONST; }
 {BINARY}                                { token_print(ICONST); yylval.intval = string_to_int(yytext); return ICONST; }    
@@ -146,13 +145,13 @@ LISTFUNC            C(AD*|D+)R
                                             }else{
                                                 strcat(string_buffer, yytext);
                                             }
-                                        }          /* Opiadipote leksi h ektos apoo " kai \\ */
-<STRING>(\n|\r\n)                       { yyerror("New line found without \\"); }               /* \n gia mac \r\n windows */
+                                        }          /* Everithyng except " and \\ */
+<STRING>(\n|\r\n)                       { yyerror("New line found without \\"); }               /* \n for mac \r\n windows */
 <STRING><<EOF>>                         { yyerror("String not closed"); }
 <STRING>.                               { yyerror("Uknown Character"); }
 
 "{"                                     { printf("Comment found\n"); BEGIN(SINGLE_LINE_COMMENT); }
-<SINGLE_LINE_COMMENT>("}")              { printf("Comment ended\n");BEGIN(INITIAL); } /* Etsi tha kleinei to sxolio */
+<SINGLE_LINE_COMMENT>("}")              { printf("Comment ended\n");BEGIN(INITIAL); } /* To close the comment */
 <SINGLE_LINE_COMMENT>.                  { }
 
 .                                       { yyerror("Unkown character\n"); }
@@ -162,7 +161,7 @@ LISTFUNC            C(AD*|D+)R
 
 
 
-/* --- SINARTISEIS ---*/
+/* --- FUNCTIONS ---*/
 
 void token_print(int token_id){
     if (FLEX_DEGUN == 0){
@@ -180,25 +179,25 @@ void token_print(int token_id){
 
 int string_to_int(char *str){
     if(strncmp(str, "0o", 2) == 0){
-        return (int) strtoll(&str[2], NULL, 8);         /* Gia oktadiko sistima */
+        return (int) strtoll(&str[2], NULL, 8);         /* For octal system */
     }else if(strncmp(str, "0B", 2) == 0){
-        return (int) strtoll(&str[2], NULL, 2);         /* Gia diadiko sistima */
+        return (int) strtoll(&str[2], NULL, 2);         /* For binary system */
     }else if(strncmp(str, "0X", 2) == 0){
-        return (int) strtoll(&str[2], NULL, 16);        /* Gia dekaeksadiko sistima */
+        return (int) strtoll(&str[2], NULL, 16);        /* For hex system */
     }else{
-        return (int) strtoll(&str[2], NULL, 10);        /* Gia degadiko sistima */
+        return (int) strtoll(&str[2], NULL, 10);        /* For decimal system */
     }
 }
 
 float string_to_float(char *str){
     if(strncmp(str, "0h", 2) == 0 || strncmp(str, "0H", 2) == 0){
-        return (float) strtof(str, NULL);  /* Gia Hex float */
+        return (float) strtof(str, NULL);  /* For Hex float */
     }else if(strncmp(str, "0O", 2) == 0 || strncmp(str, "0O", 2) == 0){
-        return (float) strtof(str, NULL);  /* Gia Octal float */
+        return (float) strtof(str, NULL);  /* For Octal float */
     }else if(strncmp(str, "0B", 2) == 0 || strncmp(str, "0B", 2) == 0){
-        return (float) strtof(str, NULL);  /* Gia Binary float */
+        return (float) strtof(str, NULL);  /* For Binary float */
     }else{
-        return (float) strtof(str, NULL);  /* Gia Decimal float */
+        return (float) strtof(str, NULL);  /* For Decimal float */
     }
 }
 
@@ -210,7 +209,7 @@ void yyerror(const char* err){
         printf("Maximum programm errors reached\nProgramm terminating...\n");
     }
 
-    yyless(1);          /* Opoy den kserei gia xaraktira sbinei to gramma gia na to ksanadiavasei p.x. se int aφδγ sbinei to φ meta to δ kai to γ */
+    yyless(1);
 }
 
 char arithmos_me_backslash(char *str) {
@@ -227,8 +226,8 @@ char arithmos_me_backslash(char *str) {
             case '0':  return '\0';
             case '$':  return '$';
             case ' ':  return ' ';
-            default:   return yytext[2]; /* agnosto escape → tha krathsoyme to gramma */
+            default:   return yytext[2]; /* unknown escape → we're keeping the letter */
         }
     }
-    return yytext[1]; /* an einai kanonikos xarakthras 'a', 'x', '$', ' ' */
+    return yytext[1]; /* if normal character 'a', 'x', '$', ' ' */
 }
